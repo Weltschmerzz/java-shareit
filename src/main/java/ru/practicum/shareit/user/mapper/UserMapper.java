@@ -18,7 +18,6 @@ public class UserMapper {
 
     public User toUser(UserDto dto) {
         if (dto == null) return null;
-
         User user = new User();
         user.setId(dto.getId());
         user.setName(dto.getName());

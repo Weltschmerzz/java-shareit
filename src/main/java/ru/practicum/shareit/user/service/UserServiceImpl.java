@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.NotUniqueInputValue;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -19,6 +20,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto dto) {
         User user = UserMapper.toUser(dto);
+
+        if (isEmailExist(dto.getEmail())) {
+            throw new NotUniqueInputValue("User with email " + dto.getEmail() + " already exists");
+        }
+
         user.setId(++seq);
         users.put(user.getId(), user);
         return UserMapper.toUserDto(user);
@@ -30,8 +36,20 @@ public class UserServiceImpl implements UserService {
         if (existing == null) {
             throw new NotFoundException("User not found: " + id);
         }
-        if (dto.getName() != null) existing.setName(dto.getName());
-        if (dto.getEmail() != null) existing.setEmail(dto.getEmail());
+
+        if (dto.getEmail() != null) {
+            if (!dto.getEmail().equalsIgnoreCase(existing.getEmail())) {
+                if (isEmailExist(dto.getEmail())) {
+                    throw new NotUniqueInputValue("User with email " + dto.getEmail() + " already exists");
+                }
+                existing.setEmail(dto.getEmail());
+            }
+        }
+
+        if (dto.getName() != null) {
+            existing.setName(dto.getName());
+        }
+
         return UserMapper.toUserDto(existing);
     }
 
@@ -52,5 +70,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void delete(Long id) {
         users.remove(id);
+    }
+
+    private boolean isEmailExist(String email) {
+        return users.values().stream().anyMatch(user -> user.getEmail().equalsIgnoreCase(email));
     }
 }
