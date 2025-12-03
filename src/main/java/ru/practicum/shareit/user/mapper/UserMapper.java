@@ -9,19 +9,21 @@ public class UserMapper {
 
     public UserDto toUserDto(User user) {
         if (user == null) return null;
-        return new UserDto(
-                user.getId(),
-                user.getName(),
-                user.getEmail()
-        );
+
+        return UserDto.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .build();
     }
 
     public User toUser(UserDto dto) {
         if (dto == null) return null;
-        User user = new User();
-        user.setId(dto.getId());
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        return user;
+
+        return User.builder()
+                .id(dto.getId())
+                .name(dto.getName())
+                .email(dto.getEmail())
+                .build();
     }
 }
