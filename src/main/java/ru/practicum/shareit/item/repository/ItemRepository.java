@@ -21,4 +21,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
                 order by i.id
             """)
     List<Item> search(@Param("text") String text);
+
+    List<Item> findAllByRequestIdOrderByIdAsc(Long requestId);
+
+    List<Item> findAllByRequestIdInOrderByIdAsc(List<Long> requestIds);
 }
