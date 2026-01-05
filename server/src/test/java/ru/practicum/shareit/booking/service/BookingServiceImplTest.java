@@ -109,32 +109,63 @@ class BookingServiceImplTest {
     @Test
     void create_whenDatesInvalid_shouldThrow400() {
         long bookerId = 2L;
-        User booker = User.builder().id(bookerId).name("B").email("b@mail.com").build();
-        Item item = Item.builder().id(10L).name("Drill").description("d").available(true).ownerId(1L).build();
+
+        User booker = User.builder()
+                .id(bookerId)
+                .name("B")
+                .email("b@mail.com")
+                .build();
+
+        Item item = Item.builder()
+                .id(10L)
+                .name("Drill")
+                .description("d")
+                .available(true)
+                .ownerId(1L)
+                .build();
 
         when(userRepository.findById(bookerId)).thenReturn(Optional.of(booker));
         when(itemRepository.findById(10L)).thenReturn(Optional.of(item));
 
-        // end <= start
-        BookingDto in1 = BookingDto.builder()
+        // 1) end раньше start — точно невалидно
+        LocalDateTime start1 = LocalDateTime.of(2030, 1, 10, 12, 0, 0);
+        LocalDateTime end1 = LocalDateTime.of(2030, 1, 10, 11, 0, 0);
+
+        BookingDto bad1 = BookingDto.builder()
                 .itemId(10L)
-                .start(LocalDateTime.now().plusDays(2))
-                .end(LocalDateTime.now().plusDays(2))
+                .start(start1)
+                .end(end1)
                 .build();
 
-        assertThatThrownBy(() -> bookingService.create(bookerId, in1))
+        assertThatThrownBy(() -> bookingService.create(bookerId, bad1))
                 .isInstanceOf(ValidationException.class);
 
-        // start in past
-        BookingDto in2 = BookingDto.builder()
+        // 2) start == end — тоже невалидно
+        LocalDateTime start2 = LocalDateTime.of(2030, 2, 1, 10, 0, 0);
+        LocalDateTime end2 = LocalDateTime.of(2030, 2, 1, 10, 0, 0);
+
+        BookingDto bad2 = BookingDto.builder()
                 .itemId(10L)
-                .start(LocalDateTime.now().minusMinutes(1))
-                .end(LocalDateTime.now().plusDays(1))
+                .start(start2)
+                .end(end2)
                 .build();
 
-        assertThatThrownBy(() -> bookingService.create(bookerId, in2))
+        assertThatThrownBy(() -> bookingService.create(bookerId, bad2))
+                .isInstanceOf(ValidationException.class);
+
+        LocalDateTime start3 = LocalDateTime.of(2000, 1, 1, 0, 0, 0);
+        LocalDateTime end3 = LocalDateTime.of(2000, 1, 2, 0, 0, 0);
+
+        BookingDto bad3 = BookingDto.builder()
+                .itemId(10L)
+                .start(start3)
+                .end(end3)
+                .build();
+
+        assertThatThrownBy(() -> bookingService.create(bookerId, bad3))
                 .isInstanceOf(ValidationException.class);
     }
+
 
     @Test
     void approve_happyPath_shouldSetApprovedOrRejected() {
